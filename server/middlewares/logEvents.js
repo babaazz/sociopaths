@@ -30,6 +30,6 @@ export const logEvents = async (message, logFile) => {
 
 //event logger middleware
 export const logger = (req, res, next) => {
-  logEvents("reqLog.txt", `${req.method}\t${req.headers.origin}\t${req.url}`);
+  logEvents(`${req.method}\t${req.headers.origin}\t${req.url}`, "reqLog.txt");
   next();
 };
