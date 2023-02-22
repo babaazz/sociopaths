@@ -13,6 +13,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postsRoutes from "./routes/postsRoutes.js";
 import { register } from "./controllers/auth.js";
+import { createPost } from "./controllers/postsControllers.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 
 // Configuration
