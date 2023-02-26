@@ -38,6 +38,7 @@ const UserSchema = mongoose.Schema(
     occupation: String,
     viewedProfile: Number,
     impressions: Number,
+    refreshToken: String,
   },
   { timestamps: true }
 );

@@ -51,16 +51,27 @@ export const login = async (req, res) => {
 
     const accessToken = jwt.sign(
       {
-        userInfo: {
-          id: user._id,
-          email: user.email,
-        },
+        id: user._id,
       },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "700s" }
     );
 
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
     user.password = undefined;
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.status(200).json({ accessToken, user });
   } catch (err) {
     res.status(500).json({ error: err.message });

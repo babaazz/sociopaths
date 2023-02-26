@@ -11,8 +11,7 @@ export const verifyToken = (req, res, next) => {
 
     jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) res.status(403).send("Access Denied");
-      req.userId = decoded.userInfo.id;
-      req.email = decoded.userInfo.email;
+      req.userId = decoded.id;
       next();
     });
   } catch (err) {

@@ -7,11 +7,13 @@ import multer from "multer";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import { logger } from "./middlewares/logEvents.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postsRoutes from "./routes/postsRoutes.js";
+import refreshRoute from "./routes/refreshRoute.js";
 import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/postsControllers.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
@@ -23,6 +25,7 @@ dotenv.config();
 const app = express();
 app.use(logger);
 app.use(express.json());
+app.use(cookieParser());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
@@ -52,6 +55,7 @@ app.post("/posts", verifyToken, upload.single("picture"), createPost);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postsRoutes);
+app.use("/refresh", refreshRoute);
 
 //Mongoose Setup
 
