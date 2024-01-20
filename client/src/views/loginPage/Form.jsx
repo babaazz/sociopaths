@@ -64,7 +64,7 @@ const Form = () => {
     formData.append("picturePath", values.picture.name);
 
     const savedUserResponse = await fetch(
-      "http://localhost:3001/auth/register",
+      "http://localhost:3500/auth/register",
       {
         method: "POST",
         body: formData,
@@ -227,6 +227,20 @@ const Form = () => {
               value={values.password}
               name="password"
               error={Boolean(touched.password) && Boolean(errors.password)}
+              helperText={touched.password && errors.password}
+              sx={{ gridColumn: "span 4" }}
+            />
+            <TextField
+              label="Confirm Password"
+              type="password"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.confirmPassword}
+              name="confirmPassword"
+              error={
+                Boolean(touched.confirmPassword) &&
+                Boolean(errors.confirmPassword)
+              }
               helperText={touched.password && errors.password}
               sx={{ gridColumn: "span 4" }}
             />
