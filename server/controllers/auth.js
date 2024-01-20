@@ -1,79 +1,92 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 // Register User
 
-export const register = async (req, res) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      picturePath,
-      friends,
-      location,
-      occupation,
-    } = req.body;
+export const register = catchAsync(async (req, res, next) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    confirmPassword,
+    picturePath,
+    friends,
+    location,
+    occupation,
+  } = req.body;
 
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(password, salt);
+  const newUser = await User.create({
+    firstName,
+    lastName,
+    email,
+    password,
+    confirmPassword,
+    picturePath,
+    friends,
+    location,
+    occupation,
+    viewedProfile: Math.floor(Math.random() * 1000),
+    impressions: Math.floor(Math.random() * 1000),
+  });
 
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password: passwordHash,
-      picturePath,
-      friends,
-      location,
-      occupation,
-      viewedProfile: Math.floor(Math.random() * 1000),
-      impressions: Math.floor(Math.random() * 1000),
-    });
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+  newUser.password = undefined;
+
+  res.status(201).json({
+    status: "Success",
+    data: {
+      user: newUser,
+    },
+  });
+});
 
 //Login
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
-    if (!user) res.status(400).json({ msg: "User doesn't exist" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) res.status(400).json({ msg: "Invalid Credentials" });
-
-    const accessToken = jwt.sign(
-      {
-        id: user._id,
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "700s" }
-    );
-
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    user.password = undefined;
-
-    res.cookie("jwt", refreshToken, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-    res.status(200).json({ accessToken, user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+export const login = catchAsync(async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new AppError("Please provide email and password", 400);
   }
-};
+  const user = await User.findOne({ email: email }).select("+password");
+  if (!user) {
+    throw new AppError("User doesn't exist", 400);
+  }
+
+  const isMatch = await user.isPasswordMatched(password, user.password);
+  if (!isMatch) {
+    throw new AppError("Email or password is wrong", 401);
+  }
+
+  const accessToken = jwt.sign(
+    {
+      id: user._id,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "700s" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  const loggedInUser = await User.findByIdAndUpdate(
+    user._id,
+    { $set: { refreshToken: refreshToken } },
+    { new: true }
+  );
+
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+  res.status(200).json({
+    status: "Success",
+    accessToken,
+    data: {
+      user: loggedInUser,
+    },
+  });
+});

@@ -2,16 +2,9 @@ import mongoose from "mongoose";
 
 const postSchema = mongoose.Schema(
   {
-    userId: {
-      type: String,
-      required: true,
-    },
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
-      type: String,
+    author: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: "user",
       required: true,
     },
     location: String,
@@ -22,13 +15,20 @@ const postSchema = mongoose.Schema(
       type: Map,
       of: Boolean,
     },
-    comments: {
-      type: Array,
-      default: [],
-    },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+postSchema.virtual("comments", {
+  ref: "comment",
+  localField: "_id",
+  foreignField: "post",
+});
+
+postSchema.pre(/^find/, function (next) {
+  this.populate("comments");
+  next();
+});
 
 const Post = mongoose.model("Post", postSchema);
 

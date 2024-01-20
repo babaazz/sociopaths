@@ -1,2 +1,0 @@
-20230214	16:37:39	9a40b717-3df8-41e3-ac32-b9961a04dc65	Log Event has been emitted
-20230214	16:48:58	e4c43c6a-902f-4652-a564-1959b767bc2e	Log Event has been emitted

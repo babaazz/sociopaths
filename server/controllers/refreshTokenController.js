@@ -7,7 +7,6 @@ const handleRefresh = async (req, res) => {
     if (!cookies?.jwt)
       return res.status(401).json({ message: "Refresh Token doesn't exist" });
 
-    console.log(cookies.jwt);
     const refreshToken = cookies.jwt;
     const foundUser = await User.findOne({ refreshToken: refreshToken });
     if (!foundUser) return res.status(403).json({ message: "Forbidden" });
@@ -17,8 +16,6 @@ const handleRefresh = async (req, res) => {
       process.env.REFRESH_TOKEN_SECRET,
       (err, decoded) => {
         const foundUserId = foundUser._id.valueOf();
-        console.log(foundUserId);
-        console.log(decoded.id);
         if (err || foundUserId !== decoded.id)
           return res.status(403).json({ message: "forbidden" });
         const accessToken = jwt.sign(
